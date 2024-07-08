@@ -27,10 +27,9 @@ cd client
 streamlit run main.py
 ```
 #### Run WEBGL simulation
-To run the WEBGL simulation, you will require a web server running, this can be easily done using [servez](https://github.com/greggman/servez/releases/tag/v1.11.2). This would require Node.js and NPM to be installed.
 ```bash
 cd webgl
-servez
+python run_webgl.py
 ```
 
 
