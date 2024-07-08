@@ -11,6 +11,7 @@ These models are deployed using a FastAPI server with streamlit user interface f
 
 ## Running simulation locally:
 ```bash
+cd simulation
 python setup.py
 ```
 
