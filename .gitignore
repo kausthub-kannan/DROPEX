@@ -2,3 +2,5 @@
 .venv
 __pycache__
 .env
+.lightning_studio
+.vscode
