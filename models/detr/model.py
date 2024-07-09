@@ -1,9 +1,18 @@
-from dataloader import collate_fn
+import torch
 import pytorch_lightning as pl
 from transformers import DetrForObjectDetection
+
+
 class Detr(pl.LightningModule):
 
-    def __init__(self, lr, lr_backbone, weight_decay, checkpoint, id2label):
+    def __init__(self,
+                 lr,
+                 lr_backbone,
+                 weight_decay,
+                 checkpoint,
+                 id2label,
+                 train_dataloader,
+                 val_dataloader):
         super().__init__()
         self.model = DetrForObjectDetection.from_pretrained(
             pretrained_model_name_or_path=checkpoint,
@@ -14,6 +23,8 @@ class Detr(pl.LightningModule):
         self.lr = lr
         self.lr_backbone = lr_backbone
         self.weight_decay = weight_decay
+        self.train_dataloader = train_dataloader
+        self.val_dataloader = val_dataloader
 
     def forward(self, pixel_values, pixel_mask):
         return self.model(pixel_values=pixel_values, pixel_mask=pixel_mask)
@@ -59,7 +70,7 @@ class Detr(pl.LightningModule):
         return torch.optim.AdamW(param_dicts, lr=self.lr, weight_decay=self.weight_decay)
 
     def train_dataloader(self):
-        return train_dataloader
+        return self.train_dataloader
 
     def val_dataloader(self):
-        return val_dataloader
+        return self.val_dataloader

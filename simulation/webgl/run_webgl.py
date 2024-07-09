@@ -1,7 +1,6 @@
 import http.server
 import socketserver
 import os
-import gzip
 import signal
 
 
