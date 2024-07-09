@@ -2,11 +2,14 @@ import os
 import torch
 import json
 
-with open("config.json") as f:
-    config = json.load(f)
+
+def get_config():
+    with open("config.json") as f:
+        config = json.load(f)
+    return config
 
 
-def get_paths(folder, root=config["root"]):
+def get_paths(folder, root):
     annotation_file = os.path.join(root, f"annotations/{folder}_annotations_coco.json")
     image_directory = os.path.join(root, f"{folder}/images")
     return annotation_file, image_directory

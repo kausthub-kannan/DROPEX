@@ -4,3 +4,8 @@ __pycache__
 .env
 .lightning_studio
 .vscode
+kaggle.json
+.kaggle
+data
+.bash_history
+.viminfo

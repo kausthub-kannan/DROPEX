@@ -7,8 +7,9 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             self,
             folder,
             image_processor,
+            root
     ):
-        annotation_file_path, image_directory_path = get_paths(folder)
+        annotation_file_path, image_directory_path = get_paths(folder, root)
 
         super(CocoDetection, self).__init__(image_directory_path, annotation_file_path)
 

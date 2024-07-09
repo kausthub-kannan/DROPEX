@@ -1,26 +1,31 @@
 import os
-
 from transformers import DetrForObjectDetection, DetrImageProcessor
 from dataloader import CocoDetection
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
-from models.detr.model import Detr
-from utils import config
+from model import Detr
+from utils import get_config
 from evaluation import evaluate
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+os.environ["WANDDB_API_KEY"] = os.getenv("WANDB_API_KEY")
+logger = logging.getLogger("train.py")
+logger.setLevel(logging.INFO)
+config = get_config()
 
-os.environ["WANDB_API_KEY"] = os.getenv("WANDB_API_KEY")
-
+logger.info("Fetching DeTr model ....\n\n")
 image_processor = DetrImageProcessor.from_pretrained(config["checkpoint"])
 model = DetrForObjectDetection.from_pretrained(config["checkpoint"])
 model.to(config["device"])
+logger.info("Model loaded!")
 
-train_data = CocoDetection("train", image_processor)
-val_data = CocoDetection("valid", image_processor)
-test_data = CocoDetection("test", image_processor)
+train_data = CocoDetection("train", image_processor, root)
+val_data = CocoDetection("valid", image_processor, root)
+test_data = CocoDetection("test", image_processor, root)
+logger.info("Data loaded")
 
 categories = train_data.coco.cats
 id2label = {k: v['name'] for k, v in categories.items()}
@@ -36,7 +41,7 @@ def collate_fn(batch):
         'labels': labels
     }
 
-
+logger.info("Creating Data loaders")
 train_dataloader = DataLoader(dataset=train_data,
                               collate_fn=collate_fn,
                               batch_size=config["batch_size"],
@@ -54,6 +59,7 @@ test_dataloader = DataLoader(dataset=test_data,
                              batch_size=config["batch_size"],
                              num_workers=config["num_workers"],
                              shuffle=False)
+logger.info("Data loaders created")
 
 model = Detr(lr=config["lr"],
              lr_backbone=config["lr_backbone"],
@@ -65,7 +71,10 @@ model = Detr(lr=config["lr"],
 batch = next(iter(train_dataloader))
 outputs = model(pixel_values=batch['pixel_values'], pixel_mask=batch['pixel_mask'])
 
+wandb.init(config["wandb_project_name"])
 wandb_logger = WandbLogger(log_model="all")
+
+logger.info("Model training started ...")
 trainer = Trainer(logger=wandb_logger,
                   devices=config["number_of_devices"],
                   accelerator="gpu",
@@ -75,6 +84,10 @@ trainer = Trainer(logger=wandb_logger,
                   log_every_n_steps=config["log_every_n_steps"],
                   )
 trainer.fit(model)
+logger.info(f"Model trained successfully for" + config["number_of_devices"] + "epochs sucessfuly. \n Logs have been saved to wandb dashboard")
+
+wandb.finish()
+
 model.to(config["device"])
 model.save_pretrained(config["output_checkpoint"])
 
