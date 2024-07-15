@@ -6,6 +6,9 @@ __pycache__
 .vscode
 kaggle.json
 .kaggle
-data
+pwd
 .bash_history
 .viminfo
+data
+models/detr/lightning_logs
+models/detr/wandb

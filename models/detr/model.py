@@ -4,6 +4,10 @@ from transformers import DetrForObjectDetection
 from torchvision.ops import box_iou
 import wandb
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+from torch.utils.data import DataLoader
+from utils import get_config
+
+config = get_config()
 
 
 class Detr(pl.LightningModule):
@@ -14,8 +18,9 @@ class Detr(pl.LightningModule):
                  weight_decay,
                  checkpoint,
                  id2label,
-                 train_dataloader,
-                 val_dataloader):
+                 train_data,
+                 val_data,
+                 collate_fn):
         super().__init__()
         self.model = DetrForObjectDetection.from_pretrained(
             pretrained_model_name_or_path=checkpoint,
@@ -26,8 +31,9 @@ class Detr(pl.LightningModule):
         self.lr = lr
         self.lr_backbone = lr_backbone
         self.weight_decay = weight_decay
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
+        self.train_data = train_data
+        self.val_data = val_data
+        self.collate_fn = collate_fn
 
         self.map_metric = MeanAveragePrecision()
 
@@ -136,7 +142,15 @@ class Detr(pl.LightningModule):
         return torch.optim.AdamW(param_dicts, lr=self.lr, weight_decay=self.weight_decay)
 
     def train_dataloader(self):
-        return self.train_dataloader
+        return DataLoader(dataset=self.train_data,
+                              collate_fn=self.collate_fn,
+                              batch_size=config["batch_size"],
+                              num_workers=config["num_workers"],
+                              shuffle=True)
 
     def val_dataloader(self):
-        return self.val_dataloader
+        return DataLoader(dataset=self.val_data,
+                            collate_fn=self.collate_fn,
+                            batch_size=config["batch_size"],
+                            num_workers=config["num_workers"],
+                            shuffle=False)

@@ -1,14 +1,16 @@
 import os
 from transformers import DetrForObjectDetection, DetrImageProcessor
 from dataloader import CocoDetection
-from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 from model import Detr
 from utils import get_config
 from evaluation import evaluate
 from dotenv import load_dotenv
+from torch.utils.data import DataLoader
 import logging
+import wandb
+import torch
 
 load_dotenv()
 os.environ["WANDDB_API_KEY"] = os.getenv("WANDB_API_KEY")
@@ -22,9 +24,9 @@ model = DetrForObjectDetection.from_pretrained(config["checkpoint"])
 model.to(config["device"])
 logger.info("Model loaded!")
 
-train_data = CocoDetection("train", image_processor, root)
-val_data = CocoDetection("valid", image_processor, root)
-test_data = CocoDetection("test", image_processor, root)
+train_data = CocoDetection("train", image_processor, config["root"])
+val_data = CocoDetection("valid", image_processor, config["root"])
+test_data = CocoDetection("test", image_processor, config["root"])
 logger.info("Data loaded")
 
 categories = train_data.coco.cats
@@ -41,35 +43,15 @@ def collate_fn(batch):
         'labels': labels
     }
 
-logger.info("Creating Data loaders")
-train_dataloader = DataLoader(dataset=train_data,
-                              collate_fn=collate_fn,
-                              batch_size=config["batch_size"],
-                              num_workers=config["num_workers"],
-                              shuffle=True)
-
-val_dataloader = DataLoader(dataset=val_data,
-                            collate_fn=collate_fn,
-                            batch_size=config["batch_size"],
-                            num_workers=config["num_workers"],
-                            shuffle=False)
-
-test_dataloader = DataLoader(dataset=test_data,
-                             collate_fn=collate_fn,
-                             batch_size=config["batch_size"],
-                             num_workers=config["num_workers"],
-                             shuffle=False)
-logger.info("Data loaders created")
-
 model = Detr(lr=config["lr"],
              lr_backbone=config["lr_backbone"],
              weight_decay=config["weight_decay"],
              checkpoint=config["checkpoint"],
-             id2label=id2label
+             id2label=id2label,
+             train_data=train_data,
+             val_data=val_data,
+             collate_fn=collate_fn
              )
-
-batch = next(iter(train_dataloader))
-outputs = model(pixel_values=batch['pixel_values'], pixel_mask=batch['pixel_mask'])
 
 wandb.init(config["wandb_project_name"])
 wandb_logger = WandbLogger(log_model="all")
@@ -82,13 +64,21 @@ trainer = Trainer(logger=wandb_logger,
                   gradient_clip_val=config["gradient_clip_val"],
                   accumulate_grad_batches=config["accumulate_grad_batches"],
                   log_every_n_steps=config["log_every_n_steps"],
+                  default_root_dir=config["output_checkpoints"],
                   )
+
 trainer.fit(model)
-logger.info(f"Model trained successfully for" + config["number_of_devices"] + "epochs sucessfuly. \n Logs have been saved to wandb dashboard")
+logger.info(f"Model trained successfully for " + str(config["epochs"]) + " epochs sucessfuly. \n Logs have been saved to wandb dashboard")
 
 wandb.finish()
 
 model.to(config["device"])
-model.save_pretrained(config["output_checkpoint"])
+model.eval()
+test_dataloader = DataLoader(dataset=test_data,
+                            collate_fn=collate_fn,
+                            batch_size=config["batch_size"],
+                            num_workers=config["num_workers"],
+                            shuffle=False)
 
 evaluate(test_data, test_dataloader, model, image_processor, config)
+torch.save(model, os.path.join(config["output_checkpoints"], "model.pt"))

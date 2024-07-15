@@ -3,8 +3,8 @@
     "checkpoint": "facebook/detr-resnet-50",
     "confidence_threshold": 0.5,
     "iou_threshold": 0.8,
-    "output_checkpoints": "output/checkpoints/detr",
-    "epoch": 10,
+    "output_checkpoints": "/teamspace/studios/this_studio/models/detr/output/checkpoints",
+    "epochs": 5,
     "batch_size": 8,
     "num_workers": 3,
     "lr": 1e-4,
@@ -15,6 +15,6 @@
     "log_every_n_steps": 5,
     "accumulate_grad_batches": 8,
     "gradient_clip_val": 1,
-    "root": "data",
+    "root": "/teamspace/studios/this_studio/data",
     "wandb_project_name": "DROPEX"
 }
