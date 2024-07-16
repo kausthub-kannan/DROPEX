@@ -3,12 +3,7 @@ from utils import get_paths
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):
-    def __init__(
-            self,
-            folder,
-            image_processor,
-            root
-    ):
+    def __init__(self, folder, image_processor, root):
         annotation_file_path, image_directory_path = get_paths(folder, root)
 
         super(CocoDetection, self).__init__(image_directory_path, annotation_file_path)
@@ -18,8 +13,10 @@ class CocoDetection(torchvision.datasets.CocoDetection):
     def __getitem__(self, idx):
         images, annotations = super(CocoDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
-        annotations = {'image_id': image_id, 'annotations': annotations}
-        encoding = self.image_processor(images=images, annotations=annotations, return_tensors="pt")
+        annotations = {"image_id": image_id, "annotations": annotations}
+        encoding = self.image_processor(
+            images=images, annotations=annotations, return_tensors="pt"
+        )
         pixel_values = encoding["pixel_values"].squeeze()
         target = encoding["labels"][0]
 

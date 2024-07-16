@@ -4,7 +4,13 @@ from utils import fetch_data
 
 
 def search_bar(db):
-    st.markdown("""
+    """ "
+    :param db: firebase_admin.db.Reference
+
+    :return data: dict - Latest entry from the database
+    """
+    st.markdown(
+        """
     <style>
         .stTextInput > div > div > input {
         background-color: #f0f2f6;
@@ -31,15 +37,19 @@ def search_bar(db):
         z-index: 1;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     col1, col2 = st.columns([10, 3])
 
     with col1:
-        search_term = st.text_input("Search",
-                                    placeholder="Enter your search term...",
-                                    label_visibility="collapsed",
-                                    key="search_input")
+        search_term = st.text_input(
+            "Search",
+            placeholder="Enter your search term...",
+            label_visibility="collapsed",
+            key="search_input",
+        )
 
     with col2:
         if st.button("Search"):

@@ -11,6 +11,9 @@ These models are deployed using a FastAPI server with streamlit user interface f
 [DROPEX-simulation](https://github.com/kausthub-kannan/DROPEX-simulation).
 
 ## Running simulation locally:
+**Note:** The setup.py has be run at the parent directory of the project. This would also install the required DETR models 
+from hugging face. If you prefer to use your own models, you can replace the models in the `simulation/models` directory.
+The DETR model can be found at Hugging Face: [DETR](https://huggingface.co/kausthubkannan17/dropex).
 ```bash
 cd simulation
 python setup.py

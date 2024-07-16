@@ -1,23 +1,30 @@
+import base64
+import io
+import logging
+
 from fastapi import FastAPI, Form
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-import base64
-from PIL import Image
-import io
-import json
-
-from detr import DetectionTransformer
-from yolo import YOLO
 from fastapi.staticfiles import StaticFiles
+from PIL import Image
+
 from db import upload_data
+from detr import DetectionTransformer
+from schema import StreamResponse
+from yolo import YOLO
 
 app = FastAPI()
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 config = {
     "image_processor_checkpoint": "facebook/detr-resnet-50",
     "model_checkpoint": "./models/detr/model.safetensors",
     "config_path": "./models/detr/config.json",
-    "device": "cpu"
+    "device": "cpu",
 }
 detr_model = DetectionTransformer(config)
 yolo_model = YOLO()
@@ -35,41 +42,37 @@ app.mount("/webgl", StaticFiles(directory="../webgl", html=True), name="webgl")
 
 @app.get("/webgl")
 async def root():
-    return FileResponse('../webgl/index.html')
+    """
+    Serve the WebGL application
+    """
+    logging.info("Serving WebGL application")
+    return FileResponse("../webgl/index.html")
 
 
 @app.post("/stream")
 async def stream(snapshot: str = Form(...), time: str = Form(...)):
+    """
+    Stream the snapshot from the client and process it using the YOLOV8 or DETR model
+
+    :param snapshot: str - Base64 encoded image
+    :param time: str - Time of the snapshot
+    """
     img_bytes = base64.b64decode(snapshot)
     img_buffer = io.BytesIO(img_bytes)
     img = Image.open(img_buffer)
 
+    logging.info(f"Received snapshot at {time}. Performing object detection.")
     predictions, image = yolo_model.predict(img)
     # predictions, image = detr_model.predict(img)
+    logging.info(f"Object detection completed. {len(predictions)} objects detected.")
 
     db_response = upload_data(predictions, image, time)
+    logging.info("Data uploaded to Firebase.")
 
-    return {
-        "message": "Data received successfully",
-        "status": True,
-        "successfully_uploaded": db_response
-        }
+    response = StreamResponse(
+        message="Data received successfully",
+        status=True,
+        successfully_uploaded=db_response,
+    )
 
-
-@app.get("/display")
-async def display():
-    with open('database/output.png', 'rb') as image_file:
-        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-
-    with open('database/predictions.json', 'r') as file:
-        predictions = json.load(file)
-
-    for prediction in predictions["predictions"]:
-        prediction["class"] = int(prediction["class"])
-        prediction["score"] = float(prediction["score"])
-        prediction["box"]["x1"] = int(prediction["box"]["x1"])
-        prediction["box"]["y1"] = int(prediction["box"]["y1"])
-        prediction["box"]["x2"] = int(prediction["box"]["x2"])
-        prediction["box"]["y2"] = int(prediction["box"]["y2"])
-
-    return JSONResponse(content={"image": encoded_image, "predictions": predictions})
+    return JSONResponse(content=response.dict())

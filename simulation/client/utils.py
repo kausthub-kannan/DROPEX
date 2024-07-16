@@ -7,7 +7,13 @@ import streamlit as st
 from streamlit_image_zoom import image_zoom
 
 
-def show_image_from_url(url, predictions, db):
+def show_image_from_url(url, predictions):
+    """
+    Display image and predictions on the streamlit app
+
+    :param url: str - URL of the image
+    :param predictions: dict - Predictions from the model
+    """
     response = requests.get(url)
     if response.status_code == 200:
 
@@ -20,26 +26,42 @@ def show_image_from_url(url, predictions, db):
 
         for pred in predictions:
             box = pred["box"]
-            x1, y1, x2, y2 = int(box["x1"]), int(box["y1"]), int(box["x2"]), int(box["y2"])
+            x1, y1, x2, y2 = (
+                int(box["x1"]),
+                int(box["y1"]),
+                int(box["x2"]),
+                int(box["y2"]),
+            )
             cv2.rectangle(image_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(image_cv,
-                        f"Class: {pred['class']} Score: {pred['score'][:5]}",
-                        (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5,
-                        (255, 255, 255),
-                        2)
+            cv2.putText(
+                image_cv,
+                f"Class: {pred['class']} Score: {pred['score'][:5]}",
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),
+                2,
+            )
 
         image_pil = Image.fromarray(image_cv[:, :, ::-1])
         image_zoom(image_pil, mode="scroll", size=(620, 380))
     else:
-        st.error('Failed to fetch image.')
+        st.error("Failed to fetch image.")
 
 
-def fetch_data(db, username='user_123'):
+def fetch_data(db, username="user_123"):
+    """
+    :param db: Firebase database reference
+    :param username: str - Username of the user
+
+    :return: dict - Latest entry from the database
+    """
     ref = db.reference(username)
     data = ref.get()
     if data:
-        sorted_data = sorted(data.items(), key=lambda item: item[1]['time'], reverse=True)
+        sorted_data = sorted(
+            data.items(), key=lambda item: item[1]["time"], reverse=True
+        )
         latest_entry = sorted_data[0][1]
         return latest_entry
     else:

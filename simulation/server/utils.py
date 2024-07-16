@@ -2,18 +2,24 @@ import numpy as np
 import cv2
 from PIL import Image
 
-class_names = ['Person', 'Car', 'Bicycle', 'OtherVehicle', 'DontCare']
+class_names = ["Person", "Car", "Bicycle", "OtherVehicle", "DontCare"]
 
 rng = np.random.default_rng(3)
 colors = rng.uniform(0, 255, size=(len(class_names), 3))
 
 conf_threshold = 0.6
 iou_threshold = 0.3
-__class_names = ['person']
+__class_names = ["person"]
 
 
 def xywh2xyxy(x):
-    # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
+    """
+    Converts the bounding box from YOLOV8 format to COCO format
+
+    :param x: np.array - [x, y, w, h] which represents the bounding box in YOLOV8 format
+
+    :return: y: np.array - [x1, y1, x2, y2] which represents the bounding box in COCO format
+    """
     y = np.copy(x)
     y[..., 0] = x[..., 0] - x[..., 2] / 2
     y[..., 1] = x[..., 1] - x[..., 3] / 2
@@ -23,6 +29,13 @@ def xywh2xyxy(x):
 
 
 def extract_boxes(predictions):
+    """
+    Extracts the bounding boxes from the ONNX output
+
+    :param predictions: np.array - ONNX output from YOLOV8 model
+
+    :return: boxes: np.array - [x1, y1, x2, y2] which represents the bounding boxes in COCO format
+    """
     boxes = predictions[:, :4]
     boxes = rescale_boxes(boxes)
     boxes = xywh2xyxy(boxes)
@@ -31,6 +44,13 @@ def extract_boxes(predictions):
 
 
 def rescale_boxes(boxes):
+    """
+    Rescales the bounding boxes to the input image size
+
+    :param boxes: np.array - [x, y, w, h] which represents the bounding boxes in YOLOV8 format
+
+    :return: np.array - [x, y, w, h] which rescaled the bounding boxes to the input image size
+    """
     input_shape = np.array([640] * 4)
     boxes = np.divide(boxes, input_shape, dtype=np.float32)
     boxes *= np.array([1920, 1080, 1920, 1080])
@@ -38,6 +58,15 @@ def rescale_boxes(boxes):
 
 
 def nms(boxes, scores, iou_threshold):
+    """
+    Performs non-maximum suppression on the bounding boxes
+
+    :param boxes: np.array - [x1, y1, x2, y2] which represents the bounding boxes in COCO format
+    :param scores: np.array - Confidence scores for each bounding box
+    :param iou_threshold: float - Intersection over Union threshold
+
+    :return: keep_boxes: list - List of indices of the bounding boxes to keep
+    """
     sorted_indices = np.argsort(scores)[::-1]
 
     keep_boxes = []
@@ -52,6 +81,16 @@ def nms(boxes, scores, iou_threshold):
 
 
 def multiclass_nms(boxes, scores, class_ids, iou_threshold):
+    """
+    Performs non-maximum suppression on the bounding boxes for each class
+
+    :param boxes: np.array - [x1, y1, x2, y2] which represents the bounding boxes in COCO format
+    :param scores: np.array - Confidence scores for each bounding box
+    :param class_ids: np.array - Class IDs for each bounding box
+    :param iou_threshold: float - Intersection over Union threshold
+
+    :return: keep_boxes: list - List of indices of the bounding boxes to keep
+    """
     unique_class_ids = np.unique(class_ids)
 
     keep_boxes = []
@@ -67,7 +106,14 @@ def multiclass_nms(boxes, scores, class_ids, iou_threshold):
 
 
 def compute_iou(box, boxes):
-    # Compute xmin, ymin, xmax, ymax for both boxes
+    """
+    Computes the Intersection over Union (IoU) between a bounding box and a list of bounding boxes
+
+    :param box: np.array - [x1, y1, x2, y2] which represents the bounding box in COCO format
+    :param boxes: np.array - [[x1, y1, x2, y2], ...] which represents the list of bounding boxes in COCO format
+
+    :return: iou: np.array - IoU between the bounding box and the list of bounding boxes
+    """
     xmin = np.maximum(box[0], boxes[:, 0])
     ymin = np.maximum(box[1], boxes[:, 1])
     xmax = np.minimum(box[2], boxes[:, 2])
@@ -88,12 +134,26 @@ def compute_iou(box, boxes):
 
 
 def grayscale(img):
+    """
+    Converts the image to grayscale
+
+    :param img: np.array - Image in RGB format
+
+    :return: gray_image: np.array - Image in grayscale format
+    """
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_image = np.stack((gray_img,) * 3, axis=-1)
     return gray_image
 
 
 def thermal_mapping(img):
+    """
+    Converts the grayscale image to a pseudo thermal image
+
+    :param img: np.array - Image in grayscale format
+
+    :return: np.array - Pseudo thermal image
+    """
     gray_img = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2GRAY)
     thermal_image = cv2.applyColorMap(gray_img, cv2.COLORMAP_JET)
     thermal_image = cv2.cvtColor(thermal_image, cv2.COLOR_BGR2RGB)
