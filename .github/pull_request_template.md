@@ -16,7 +16,7 @@ pull request.
 
 ## Checklist:
 
-- [ ] I have read the [CONTRIBUTING.md](CONTRIBUTING.md) document.
+- [ ] I have read the [CONTRIBUTING.md](../CONTRIBUTING.md) document.
 - [ ] My code follows the code style of this project.
 - [ ] I have performed a self-review of my own code.
 - [ ] I have commented my code, particularly in hard-to-understand areas.
