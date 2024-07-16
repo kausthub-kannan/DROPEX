@@ -12,23 +12,6 @@ iou_threshold = 0.3
 __class_names = ['person']
 
 
-def process_output(output):
-    predictions = np.squeeze(output[0]).T
-
-    scores = np.max(predictions[:, 4:], axis=1)
-    predictions = predictions[scores > conf_threshold, :]
-    scores = scores[scores > conf_threshold]
-
-    if len(scores) == 0:
-        return [], [], []
-
-    class_ids = np.argmax(predictions[:, 4:], axis=1)
-    boxes = extract_boxes(predictions)
-    indices = multiclass_nms(boxes, scores, class_ids, iou_threshold)
-
-    return boxes[indices], scores[indices], class_ids[indices]
-
-
 def xywh2xyxy(x):
     # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
     y = np.copy(x)

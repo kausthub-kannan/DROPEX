@@ -16,7 +16,7 @@ cd simulation
 python setup.py
 ```
 
-#### Run FastAPI server
+#### Run FastAPI server (also servers the WEBGL app)
 ```bash
 cd server
 uvicorn main:app --reload
@@ -25,11 +25,6 @@ uvicorn main:app --reload
 ```bash
 cd client
 streamlit run main.py
-```
-#### Run WEBGL simulation
-```bash
-cd webgl
-python run_webgl.py
 ```
 
 
