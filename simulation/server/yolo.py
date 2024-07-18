@@ -8,7 +8,7 @@ from utils import grayscale, extract_boxes, multiclass_nms, thermal_mapping
 class YOLO:
     def __init__(self):
         self.output = None
-        self.sess = rt.InferenceSession("models/pdti_and_unirid.onnx")
+        self.sess = rt.InferenceSession("models/yolov8.onnx")
 
     def predict(self, img):
         """
