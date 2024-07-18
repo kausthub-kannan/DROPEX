@@ -15,3 +15,4 @@ models/detr/wandb
 simulation/server/models/detr/
 simulation/client/dropex-2024-firebase-adminsdk.json
 simulation/server/dropex-2024-firebase-adminsdk.json
+simulation/server/app.log

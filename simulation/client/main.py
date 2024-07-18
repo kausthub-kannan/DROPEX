@@ -25,6 +25,6 @@ col1, col2 = st.columns([10, 3])
 data = search_bar(db)
 
 if data:
-    show_image_from_url(data["image_url"], data["predictions"], db)
+    show_image_from_url(data["image_url"], data["predictions"])
 else:
     st.write("Enter your Username (same as in simulation) to view predictions")

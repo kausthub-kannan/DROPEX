@@ -22,8 +22,7 @@ logging.basicConfig(
 
 config = {
     "image_processor_checkpoint": "facebook/detr-resnet-50",
-    "model_checkpoint": "./models/detr/model.safetensors",
-    "config_path": "./models/detr/config.json",
+    "model_checkpoint": "kausthubkannan17/dropex",
     "device": "cpu",
 }
 detr_model = DetectionTransformer(config)
@@ -62,8 +61,8 @@ async def stream(snapshot: str = Form(...), time: str = Form(...)):
     img = Image.open(img_buffer)
 
     logging.info(f"Received snapshot at {time}. Performing object detection.")
-    predictions, image = yolo_model.predict(img)
-    # predictions, image = detr_model.predict(img)
+    # predictions, image = yolo_model.predict(img)
+    predictions, image = detr_model.predict(img)
     logging.info(f"Object detection completed. {len(predictions)} objects detected.")
 
     db_response = upload_data(predictions, image, time)

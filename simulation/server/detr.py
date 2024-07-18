@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import torch
-from transformers import AutoConfig, AutoModelForObjectDetection, DetrImageProcessor
+from transformers import AutoModelForObjectDetection, DetrImageProcessor
 from utils import grayscale, thermal_mapping
 
 
@@ -14,8 +14,7 @@ class DetectionTransformer:
         self.config = config
         self.device = torch.device(self.config["device"])
         self.model = AutoModelForObjectDetection.from_pretrained(
-            self.config["model_checkpoint"],
-            config=AutoConfig.from_pretrained(self.config["config_path"]),
+            self.config["model_checkpoint"]
         ).to(self.device)
 
         self.image_processor = DetrImageProcessor.from_pretrained(
