@@ -1,5 +1,5 @@
 # DROPEX
-Disaster Rescue Operations and Probing using EXpert Drones is Disaster Risk Management (DRM) framework which is utilised to use swarm of drones with autonomous person detection and payload dropping making the rescue operations optimal.
+Disaster Rescue Operations and Probing using EXpert Drones is Disaster Risk Management (DRM) framework which is utilised to use swarm of drones with autonomous person detection and payload dropping making the rescue operations optimal.  
 <img width="600" src="assets/simulation-results.png" alt="dropex-arch"/>
 
 ## Architecture
