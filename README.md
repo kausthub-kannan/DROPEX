@@ -1,5 +1,6 @@
 # DROPEX
 Disaster Rescue Operations and Probing using EXpert Drones is Disaster Risk Management (DRM) framework which is utilised to use swarm of drones with autonomous person detection and payload dropping making the rescue operations optimal.
+<img width="600" src="assets/simulation-results.png" alt="dropex-arch"/>
 
 ## Architecture
 <img width="600" src="assets/dropex-architecture.png" alt="dropex-arch"/>
@@ -11,9 +12,10 @@ These models are deployed using a FastAPI server with streamlit user interface f
 [DROPEX-simulation](https://github.com/kausthub-kannan/DROPEX-simulation).
 
 ## Running simulation locally:
-**Note:** The setup.py has be run at the parent directory of the project. This would also install the required DETR models 
-from hugging face. If you prefer to use your own models, you can replace the models in the `simulation/models` directory.
-The DETR model can be found at Hugging Face: [DETR](https://huggingface.co/kausthubkannan17/dropex).
+If you prefer to use your own models, you can replace the models in the `simulation/models` directory either by providing
+local path or hosting your model in Hugging Face and providing the model name. The DETR model used by default can be 
+found at Hugging Face: [DETR](https://huggingface.co/kausthubkannan17/dropex).
+
 ```bash
 cd simulation
 python setup.py
@@ -29,5 +31,10 @@ uvicorn main:app --reload
 cd client
 streamlit run main.py
 ```
+
+**Note:**
+Before running the servers, add your firebase-adminsdk.json file to both `server` and `client` directories. 
+This is required for the firebase authentication. Also, enable read and write operations to be true in the firebase 
+rules for realtime database.
 
 

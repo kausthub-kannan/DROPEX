@@ -32,7 +32,7 @@ def show_image_from_url(url, predictions):
                 int(box["x2"]),
                 int(box["y2"]),
             )
-            cv2.rectangle(image_cv, (x1, y1+50), (x2, y2+50), (0, 255, 0), 2)
+            cv2.rectangle(image_cv, (x1, y1 + 50), (x2, y2 + 50), (0, 255, 0), 2)
             cv2.putText(
                 image_cv,
                 f"Class: {pred['class']} Score: {pred['score'][:5]}",
